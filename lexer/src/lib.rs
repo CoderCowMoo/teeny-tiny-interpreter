@@ -1,14 +1,14 @@
-mod tokens;
+pub mod tokens;
 
 use tokens::{Token, TokenType};
 /// The main entry point for the interpreter. Refer to it's relevant documentation for more information.
-struct Lexer {
+pub struct Lexer {
     // we need to store the source code
     source: String,
     // and the current cur_pos in the source code
     cur_pos: i64,
     // and the current character
-    cur_char: char,
+    pub cur_char: char,
 }
 
 impl Lexer {
