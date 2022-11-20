@@ -32,14 +32,14 @@ impl Parser {
 
     /// Try and match the current token to the next expected token.
     pub fn match_token(&mut self, kind: TokenType) {
-        if !self.check_token(kind) {
+        if !self.check_token(kind.clone()) {
             panic!("Expected token {:?}, got {:?}", kind, self.cur_token);
         }
         self.next_token();
     }
 
     pub fn next_token(&mut self) {
-        self.cur_token = self.peek_token;
+        self.cur_token = self.peek_token.clone();
         self.peek_token = self.lexer.get_token();
     }
 }
@@ -47,10 +47,4 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
 }
