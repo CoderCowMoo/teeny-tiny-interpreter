@@ -9,6 +9,9 @@ version = "0.1.0"
 [[package]]
 name = "parser"
 version = "0.1.0"
+dependencies = [
+ "lexer",
+]
 
 [[package]]
 name = "teeny_tiny_rust"
