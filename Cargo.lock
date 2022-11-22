@@ -18,4 +18,5 @@ name = "teeny_tiny_rust"
 version = "0.1.0"
 dependencies = [
  "lexer",
+ "parser",
 ]
