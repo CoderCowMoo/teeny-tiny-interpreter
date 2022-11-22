@@ -9,7 +9,7 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(lexer: Lexer) -> Self {
-        Parser {
+        let mut newparser = Parser {
             lexer,
             cur_token: Token {
                 token_type: TokenType::UNKNOWN,
@@ -19,7 +19,13 @@ impl Parser {
                 token_type: TokenType::UNKNOWN,
                 value: "".to_string(),
             },
-        }
+        };
+        // initialise cur_token and peek_token.
+        // due to functions, it initialises peek_token first and then cur_token
+        // calling twice will give cur_token the first token and peek_token the second.
+        newparser.next_token();
+        newparser.next_token();
+        newparser
     }
 
     pub fn check_token(&self, kind: TokenType) -> bool {
@@ -41,6 +47,45 @@ impl Parser {
     pub fn next_token(&mut self) {
         self.cur_token = self.peek_token.clone();
         self.peek_token = self.lexer.get_token();
+    }
+
+    // we will now begin implementing the function for each rule of the grammer
+    /// Begin program. This is the inpoint for the user
+    pub fn program(&mut self) {
+        println!("PROGRAM");
+        while !self.check_token(TokenType::EOF) {
+            self.statement();
+        }
+    }
+
+    /// Process each type of statement that we have defined.
+    fn statement(&mut self) {
+        // is it a PRINT?
+        if self.check_token(TokenType::PRINT) {
+            println!("STATEMENT-PRINT");
+            self.next_token();
+
+            // check for string or expression.
+            if self.check_token(TokenType::STRING) {
+                self.next_token();
+            } else {
+                // then we have an expression to evaluate and print (e.g. 2+2)
+                todo!();
+            }
+        }
+        // print a newline
+        self.nl();
+    }
+
+    fn nl(&mut self) {
+        println!("NEWLINE");
+
+        // we need at least one newline
+        self.match_token(TokenType::NEWLINE);
+        // but allow for more
+        while self.check_token(TokenType::NEWLINE) {
+            self.next_token();
+        }
     }
 }
 
