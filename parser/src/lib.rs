@@ -58,7 +58,7 @@ impl Parser {
         }
     }
 
-    /// Process each type of statement that we have defined.
+    // Process each type of statement that we have defined. (e.g. PRINT | IF)
     fn statement(&mut self) {
         // is it a PRINT?
         if self.check_token(TokenType::PRINT) {
@@ -73,10 +73,50 @@ impl Parser {
                 todo!();
             }
         }
-        // print a newline
+        // IF statement?
+        if self.check_token(TokenType::IF) {
+            println!("STATEMENT-IF");
+            self.next_token();
+            self.comparison();
+
+            // needs to have a THEN after comparison expression.
+            self.match_token(TokenType::THEN);
+            self.nl();
+
+            // in the body of the IF, we'll have zero or more statements
+            while !self.check_token(TokenType::ENDIF) {
+                self.statement();
+            }
+
+            // we need to have an ENDIF eventually after IF
+            self.match_token(TokenType::ENDIF);
+        }
+        // WHILE?
+        if self.check_token(TokenType::WHILE) {
+            println!("STATEMENT-WHILE");
+            self.next_token();
+            self.comparison();
+
+            // like for IF we had THEN, WHILE has REPEAT
+            self.match_token(TokenType::REPEAT);
+            self.nl();
+
+            // then the statements in the body
+            while !self.check_token(TokenType::ENDWHILE) {
+                self.statement();
+            }
+            // even though we check for it previously, _make sure_ that it is there.
+            self.match_token(TokenType::ENDWHILE);
+        }
+        // print a newline must be at end
         self.nl();
     }
 
+    fn comparison(&mut self) {
+        todo!();
+    }
+
+    // a newline
     fn nl(&mut self) {
         println!("NEWLINE");
 
