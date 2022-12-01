@@ -60,7 +60,10 @@ impl Parser {
 
     // Process each type of statement that we have defined. (e.g. PRINT | IF)
     fn statement(&mut self) {
+        // ----- Here begins our gigantic if statements which we knew we eventually had to add eh?
+
         // is it a PRINT?
+        // PRINT (expression | string)
         if self.check_token(TokenType::PRINT) {
             println!("STATEMENT-PRINT");
             self.next_token();
@@ -72,8 +75,9 @@ impl Parser {
                 // then we have an expression to evaluate and print (e.g. 2+2)
                 todo!();
             }
-        }
+        } else
         // IF statement?
+        // IF comparison THEN nl { statement } ENDIF nl
         if self.check_token(TokenType::IF) {
             println!("STATEMENT-IF");
             self.next_token();
@@ -90,8 +94,8 @@ impl Parser {
 
             // we need to have an ENDIF eventually after IF
             self.match_token(TokenType::ENDIF);
-        }
-        // WHILE?
+        } else
+        // WHILE comparison REPEAT { statement } ENDWHILE
         if self.check_token(TokenType::WHILE) {
             println!("STATEMENT-WHILE");
             self.next_token();
@@ -107,12 +111,53 @@ impl Parser {
             }
             // even though we check for it previously, _make sure_ that it is there.
             self.match_token(TokenType::ENDWHILE);
+        } else
+        // a label for GOTO statements
+        // LABEL ident
+        if self.check_token(TokenType::LABEL) {
+            println!("STATEMENT-LABEL");
+            self.next_token();
+            // make sure that there is a name for the LABEL
+            self.match_token(TokenType::IDENTIFIER);
+        } else
+        // GOTO ident
+        if self.check_token(TokenType::GOTO) {
+            println!("STATEMENT-GOTO");
+            self.next_token();
+            self.match_token(TokenType::IDENTIFIER);
+        } else
+        // LET ident = expression
+        if self.check_token(TokenType::LET) {
+            println!("STATEMENT-LET");
+            self.next_token();
+            self.match_token(TokenType::IDENTIFIER);
+            self.match_token(TokenType::EQ);
+            self.expression();
+        } else
+        // INPUT ident
+        if self.check_token(TokenType::INPUT) {
+            println!("STATEMENT-INPUT");
+            self.next_token();
+            // we gotta know what to input into
+            self.match_token(TokenType::IDENTIFIER);
+        } else {
+            // invalid statement
+            panic!(
+                "Invalid statement at {} ({:?})",
+                self.cur_token.value, self.cur_token.token_type
+            );
         }
         // print a newline must be at end
         self.nl();
     }
 
+    // evaluate a comparison
     fn comparison(&mut self) {
+        todo!();
+    }
+
+    // evaluate an expression
+    fn expression(&mut self) {
         todo!();
     }
 
@@ -130,6 +175,4 @@ impl Parser {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-}
+mod tests {}
