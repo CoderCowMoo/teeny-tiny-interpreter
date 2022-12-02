@@ -115,13 +115,14 @@ impl<'a> Parser<'a> {
         // IF statement?
         // IF comparison THEN nl { statement } ENDIF nl
         if self.check_token(TokenType::IF) {
-            println!("STATEMENT-IF");
             self.next_token();
+            self.emitter.emit("if (".to_string());
             self.comparison();
 
             // needs to have a THEN after comparison expression.
             self.match_token(TokenType::THEN);
             self.nl();
+            self.emitter.emit_line("){".to_string()); // closing if comparison and opening block
 
             // in the body of the IF, we'll have zero or more statements
             while !self.check_token(TokenType::ENDIF) {
@@ -130,16 +131,18 @@ impl<'a> Parser<'a> {
 
             // we need to have an ENDIF eventually after IF
             self.match_token(TokenType::ENDIF);
+            self.emitter.emit_line("}".to_string());
         } else
         // WHILE comparison REPEAT { statement } ENDWHILE
         if self.check_token(TokenType::WHILE) {
-            println!("STATEMENT-WHILE");
             self.next_token();
+            self.emitter.emit("while(".to_string());
             self.comparison();
 
             // like for IF we had THEN, WHILE has REPEAT
             self.match_token(TokenType::REPEAT);
             self.nl();
+            self.emitter.emit_line("){".to_string());
 
             // then the statements in the body
             while !self.check_token(TokenType::ENDWHILE) {
@@ -147,11 +150,11 @@ impl<'a> Parser<'a> {
             }
             // even though we check for it previously, _make sure_ that it is there.
             self.match_token(TokenType::ENDWHILE);
+            self.emitter.emit_line("}".to_string());
         } else
         // a label for GOTO statements
         // LABEL ident
         if self.check_token(TokenType::LABEL) {
-            println!("STATEMENT-LABEL");
             self.next_token();
             // make sure that the label doesn't already exist
             if self.labels_declared.contains(&self.cur_token.value) {
@@ -160,40 +163,59 @@ impl<'a> Parser<'a> {
             // it doesnt exist so add it now
             self.labels_declared
                 .insert(self.cur_token.value.to_string());
+
+            self.emitter.emit_line(format!("{}:", self.cur_token.value));
             // make sure that there is a name for the LABEL
             self.match_token(TokenType::IDENTIFIER);
         } else
         // GOTO ident
         if self.check_token(TokenType::GOTO) {
-            println!("STATEMENT-GOTO");
             self.next_token();
             // add the identifier to the gotoed HashSet
             self.labels_go_toed.insert(self.cur_token.value.to_string());
+            self.emitter
+                .emit_line(format!("goto {};", self.cur_token.value));
             self.match_token(TokenType::IDENTIFIER);
         } else
         // LET ident = expression
         if self.check_token(TokenType::LET) {
-            println!("STATEMENT-LET");
             self.next_token();
 
             // check if it exists in symbol table, and declare if not
             if !self.symbols.contains(&self.cur_token.value) {
                 self.symbols.insert(self.cur_token.value.to_string());
+                self.emitter
+                    .header_line(format!("float {};", self.cur_token.value));
             }
 
+            // I am fully 100% rarted
+            self.emitter
+                .emit(self.cur_token.value.clone() + &" = ".to_string());
             self.match_token(TokenType::IDENTIFIER);
             self.match_token(TokenType::EQ);
 
             self.expression();
+            self.emitter.emit_line(";".to_string());
         } else
         // INPUT ident
         if self.check_token(TokenType::INPUT) {
-            println!("STATEMENT-INPUT");
             self.next_token();
             // if the variable doesn't exist already, declare it
             if !self.symbols.contains(&self.cur_token.value) {
                 self.symbols.insert(self.cur_token.value.to_string());
+                self.emitter
+                    .header_line(format!("float {};", self.cur_token.value));
             }
+            // emit scanf and validate input. If invalid set to 0 and clear input
+            self.emitter.emit_line(format!(
+                "if (0 == scanf(\"%f\", &{})) {{",
+                self.cur_token.value
+            )); // if (0 == scanf("%f", &example_float));
+            self.emitter
+                .emit_line(format!("{} = 0.0;", self.cur_token.value)); // example_float = 0;
+            self.emitter.emit("scanf(\"%".to_string()); // scanf("%*s)
+            self.emitter.emit_line("*s\");".to_string());
+            self.emitter.emit_line("}".to_string());
             // we gotta know what to input into
             self.match_token(TokenType::IDENTIFIER);
         } else {
