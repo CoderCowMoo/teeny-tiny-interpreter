@@ -193,7 +193,54 @@ impl Parser {
     }
 
     // evaluate an expression
-    fn expression(&mut self) {}
+    // expression ::= term {( "-" | "+" ) term}
+    // an expression is a term optionally followed by a pos. or neg. term
+    fn expression(&mut self) {
+        println!("EXPRESSION");
+        self.term();
+
+        // can have 0 or more +/- expressions
+        while self.check_token(TokenType::PLUS) || self.check_token(TokenType::MINUS) {
+            self.next_token();
+            self.unary();
+        }
+    }
+
+    // term ::= unary {( "/" | "*" ) unary}
+    fn term(&mut self) {
+        println!("TERM");
+        self.unary();
+
+        // we can have 0 or more * or / and expressions
+        while self.check_token(TokenType::ASTERISK) || self.check_token(TokenType::SLASH) {
+            self.next_token();
+            self.unary();
+        }
+    }
+
+    // unary ::= ["+" | "-"] primary
+    fn unary(&mut self) {
+        println!("UNARY");
+
+        // optionally has a positive or negative
+        if self.check_token(TokenType::PLUS) || self.check_token(TokenType::MINUS) {
+            self.next_token();
+        }
+        self.primary();
+    }
+
+    // primary ::= number | ident
+    fn primary(&mut self) {
+        println!("PRIMARY ({})", self.cur_token.value);
+
+        if self.check_token(TokenType::NUMBER) {
+            self.next_token();
+        } else if self.check_token(TokenType::IDENTIFIER) {
+            self.next_token();
+        } else {
+            panic!("Unexpected token at {}", self.cur_token.value);
+        }
+    }
 
     // a newline
     fn nl(&mut self) {
