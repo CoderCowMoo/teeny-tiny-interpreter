@@ -97,15 +97,18 @@ impl<'a> Parser<'a> {
         // is it a PRINT?
         // PRINT (expression | string)
         if self.check_token(TokenType::PRINT) {
-            println!("STATEMENT-PRINT");
             self.next_token();
 
             // check for string or expression.
             if self.check_token(TokenType::STRING) {
+                self.emitter.emit_line("printf(\"{}\\n\");".to_string());
                 self.next_token();
             } else {
                 // then we have an expression to evaluate and print (e.g. 2+2)
-                self.expression()
+                self.emitter
+                    .emit("printf(\"%.2f\\n\", (float)(".to_string()); // printf("%.2f\n", (float)(EXPRESSION))
+                self.expression(); // expression will print result
+                self.emitter.emit_line("));".to_string()); // one bracket to close expression and 1 for printf
             }
         } else
         // IF statement?
