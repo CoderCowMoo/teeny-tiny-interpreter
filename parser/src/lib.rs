@@ -49,10 +49,18 @@ impl Parser {
         self.peek_token = self.lexer.get_token();
     }
 
-    // we will now begin implementing the function for each rule of the grammer
+    // ----------------------------- IMPORTANT CHECKPOINT ----------------------------------
+    // |     we will now begin implementing the function for each rule of the grammer      |
+    // -------------------------------------------------------------------------------------
     /// Begin program. This is the inpoint for the user
     pub fn program(&mut self) {
         println!("PROGRAM");
+
+        // ignore excess newlines
+        while self.check_token(TokenType::NEWLINE) {
+            self.next_token();
+        }
+        // parse all the statements in this program
         while !self.check_token(TokenType::EOF) {
             self.statement();
         }
@@ -152,14 +160,40 @@ impl Parser {
     }
 
     // evaluate a comparison
+    // comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
+    // this means that a comparison is an expression with one or more other expressions
+    // with a comparison operator between.
     fn comparison(&mut self) {
-        todo!();
+        println!("COMPARISON");
+        self.expression();
+
+        // must have at least one comp.op. and another expression afterwards.
+        if self.is_comparison_operator() {
+            self.next_token();
+            self.expression();
+        } else {
+            panic!("Expected comparison operator at: {}", self.cur_token.value);
+        }
+
+        // we can now have 0 or more comp.op.s and expression pairs
+        while self.is_comparison_operator() {
+            self.next_token();
+            self.expression();
+        }
+    }
+
+    // helper to determine whether there is a comparison operator
+    fn is_comparison_operator(&mut self) -> bool {
+        self.check_token(TokenType::GT)
+            || self.check_token(TokenType::GTEQ)
+            || self.check_token(TokenType::LT)
+            || self.check_token(TokenType::LTEQ)
+            || self.check_token(TokenType::EQEQ)
+            || self.check_token(TokenType::NOTEQ)
     }
 
     // evaluate an expression
-    fn expression(&mut self) {
-        todo!();
-    }
+    fn expression(&mut self) {}
 
     // a newline
     fn nl(&mut self) {
