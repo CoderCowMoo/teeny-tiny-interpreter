@@ -234,11 +234,11 @@ impl<'a> Parser<'a> {
     // this means that a comparison is an expression with one or more other expressions
     // with a comparison operator between.
     fn comparison(&mut self) {
-        println!("COMPARISON");
         self.expression();
 
         // must have at least one comp.op. and another expression afterwards.
         if self.is_comparison_operator() {
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
             self.expression();
         } else {
@@ -247,6 +247,7 @@ impl<'a> Parser<'a> {
 
         // we can now have 0 or more comp.op.s and expression pairs
         while self.is_comparison_operator() {
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
             self.expression();
         }
@@ -266,11 +267,11 @@ impl<'a> Parser<'a> {
     // expression ::= term {( "-" | "+" ) term}
     // an expression is a term optionally followed by a pos. or neg. term
     fn expression(&mut self) {
-        println!("EXPRESSION");
         self.term();
 
         // can have 0 or more +/- expressions
         while self.check_token(TokenType::PLUS) || self.check_token(TokenType::MINUS) {
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
             self.term();
         }
@@ -278,11 +279,11 @@ impl<'a> Parser<'a> {
 
     // term ::= unary {( "/" | "*" ) unary}
     fn term(&mut self) {
-        println!("TERM");
         self.unary();
 
         // we can have 0 or more * or / and expressions
         while self.check_token(TokenType::ASTERISK) || self.check_token(TokenType::SLASH) {
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
             self.unary();
         }
@@ -290,10 +291,9 @@ impl<'a> Parser<'a> {
 
     // unary ::= ["+" | "-"] primary
     fn unary(&mut self) {
-        println!("UNARY");
-
         // optionally has a positive or negative
         if self.check_token(TokenType::PLUS) || self.check_token(TokenType::MINUS) {
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
         }
         self.primary();
@@ -301,9 +301,8 @@ impl<'a> Parser<'a> {
 
     // primary ::= number | ident
     fn primary(&mut self) {
-        println!("PRIMARY ({})", self.cur_token.value);
-
         if self.check_token(TokenType::NUMBER) {
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
         } else if self.check_token(TokenType::IDENTIFIER) {
             // check that the variable exists before we allow it
@@ -313,6 +312,7 @@ impl<'a> Parser<'a> {
                     self.cur_token.value
                 );
             }
+            self.emitter.emit(self.cur_token.value.clone());
             self.next_token();
         } else {
             panic!("Unexpected token at {}", self.cur_token.value);
@@ -321,8 +321,6 @@ impl<'a> Parser<'a> {
 
     // a newline
     fn nl(&mut self) {
-        println!("NEWLINE");
-
         // we need at least one newline
         self.match_token(TokenType::NEWLINE);
         // but allow for more
