@@ -1,9 +1,11 @@
 use lexer::tokens::{Token, TokenType};
 use lexer::Lexer;
 use std::collections::HashSet;
+use cemitter::
 
 pub struct Parser {
     lexer: Lexer,
+    emitter: &mut Emitter,
     cur_token: Token,
     peek_token: Token,
     // use a hashset (FOR SPPPEEEEDED NEEOOWWWWWW)
