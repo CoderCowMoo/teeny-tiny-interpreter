@@ -101,7 +101,8 @@ impl<'a> Parser<'a> {
 
             // check for string or expression.
             if self.check_token(TokenType::STRING) {
-                self.emitter.emit_line("printf(\"{}\\n\");".to_string());
+                self.emitter
+                    .emit_line(format!("printf(\"{}\\n\");", self.cur_token.value));
                 self.next_token();
             } else {
                 // then we have an expression to evaluate and print (e.g. 2+2)
