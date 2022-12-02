@@ -8,7 +8,7 @@ pub struct Parser<'a> {
     emitter: &'a mut Emitter,
     cur_token: Token,
     peek_token: Token,
-    // use a hashset (FOR SPPPEEEEDED NEEOOWWWWWW)
+    // use a hashset (FOR SPEEEEEEEEEEEED NEEOOWWWWWW)
     symbols: HashSet<String>,
     labels_declared: HashSet<String>,
     labels_go_toed: HashSet<String>,
@@ -65,7 +65,8 @@ impl<'a> Parser<'a> {
     // -------------------------------------------------------------------------------------
     /// Begin program. This is the inpoint for the user
     pub fn program(&mut self) {
-        println!("PROGRAM");
+        self.emitter.header_line("#include <stdio.h>".to_string());
+        self.emitter.header_line("int main(void) {".to_string());
 
         // ignore excess newlines
         while self.check_token(TokenType::NEWLINE) {
@@ -75,6 +76,10 @@ impl<'a> Parser<'a> {
         while !self.check_token(TokenType::EOF) {
             self.statement();
         }
+
+        // by this point program is done
+        self.emitter.emit_line("return 0;".to_string());
+        self.emitter.emit_line("}".to_string());
 
         // now check that each label in a GOTO exists
         for label in self.labels_go_toed.iter() {
