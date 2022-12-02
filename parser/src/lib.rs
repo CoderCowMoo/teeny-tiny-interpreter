@@ -81,7 +81,7 @@ impl Parser {
                 self.next_token();
             } else {
                 // then we have an expression to evaluate and print (e.g. 2+2)
-                todo!();
+                self.expression()
             }
         } else
         // IF statement?
@@ -202,7 +202,7 @@ impl Parser {
         // can have 0 or more +/- expressions
         while self.check_token(TokenType::PLUS) || self.check_token(TokenType::MINUS) {
             self.next_token();
-            self.unary();
+            self.term();
         }
     }
 
