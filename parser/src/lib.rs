@@ -1,10 +1,15 @@
 use lexer::tokens::{Token, TokenType};
 use lexer::Lexer;
+use std::collections::HashSet;
 
 pub struct Parser {
     lexer: Lexer,
     cur_token: Token,
     peek_token: Token,
+    // use a hashset (FOR SPPPEEEEDED NEEOOWWWWWW)
+    symbols: HashSet<String>,
+    labels_declared: HashSet<String>,
+    labels_go_toed: HashSet<String>,
 }
 
 impl Parser {
@@ -19,6 +24,9 @@ impl Parser {
                 token_type: TokenType::UNKNOWN,
                 value: "".to_string(),
             },
+            symbols: HashSet::new(),
+            labels_declared: HashSet::new(),
+            labels_go_toed: HashSet::new(),
         };
         // initialise cur_token and peek_token.
         // due to functions, it initialises peek_token first and then cur_token
@@ -63,6 +71,14 @@ impl Parser {
         // parse all the statements in this program
         while !self.check_token(TokenType::EOF) {
             self.statement();
+        }
+
+        // now check that each label in a GOTO exists
+        for label in self.labels_go_toed.iter() {
+            if !self.labels_declared.contains(label) {
+                // its not in the declared labels list so die
+                panic!("Attempting to GOTO an undeclared label: {}", label);
+            }
         }
     }
 
@@ -125,6 +141,13 @@ impl Parser {
         if self.check_token(TokenType::LABEL) {
             println!("STATEMENT-LABEL");
             self.next_token();
+            // make sure that the label doesn't already exist
+            if self.labels_declared.contains(&self.cur_token.value) {
+                panic!("Label already exists: {}", self.cur_token.value);
+            }
+            // it doesnt exist so add it now
+            self.labels_declared
+                .insert(self.cur_token.value.to_string());
             // make sure that there is a name for the LABEL
             self.match_token(TokenType::IDENTIFIER);
         } else
@@ -132,20 +155,33 @@ impl Parser {
         if self.check_token(TokenType::GOTO) {
             println!("STATEMENT-GOTO");
             self.next_token();
+            // add the identifier to the gotoed HashSet
+            self.labels_go_toed.insert(self.cur_token.value.to_string());
             self.match_token(TokenType::IDENTIFIER);
         } else
         // LET ident = expression
         if self.check_token(TokenType::LET) {
             println!("STATEMENT-LET");
             self.next_token();
+
+            // check if it exists in symbol table, and declare if not
+            if !self.symbols.contains(&self.cur_token.value) {
+                self.symbols.insert(self.cur_token.value.to_string());
+            }
+
             self.match_token(TokenType::IDENTIFIER);
             self.match_token(TokenType::EQ);
+
             self.expression();
         } else
         // INPUT ident
         if self.check_token(TokenType::INPUT) {
             println!("STATEMENT-INPUT");
             self.next_token();
+            // if the variable doesn't exist already, declare it
+            if !self.symbols.contains(&self.cur_token.value) {
+                self.symbols.insert(self.cur_token.value.to_string());
+            }
             // we gotta know what to input into
             self.match_token(TokenType::IDENTIFIER);
         } else {
@@ -236,6 +272,13 @@ impl Parser {
         if self.check_token(TokenType::NUMBER) {
             self.next_token();
         } else if self.check_token(TokenType::IDENTIFIER) {
+            // check that the variable exists before we allow it
+            if !self.symbols.contains(&self.cur_token.value) {
+                panic!(
+                    "Referencing variable before assignment: {}",
+                    self.cur_token.value
+                );
+            }
             self.next_token();
         } else {
             panic!("Unexpected token at {}", self.cur_token.value);
