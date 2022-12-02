@@ -1,3 +1,4 @@
+use cemitter::Emitter;
 use lexer::Lexer;
 use parser::Parser;
 use std::env;
@@ -18,6 +19,8 @@ fn main() {
     };
 
     // seemingly cursed?
+    // idk what I meant by the above comment, perhaps im remarking about how amazed I am by
+    // rust's string handling. idk
     let lexer = Lexer::new(&match String::from_utf8(input_file) {
         Ok(o) => o,
         Err(e) => panic!(
@@ -26,8 +29,17 @@ fn main() {
         ),
     });
 
-    let mut parser = Parser::new(lexer);
-    parser.program();
+    // lets init an emitter as well
+    let mut emitter = Emitter::new("out.c".to_string());
+    // init parser
+    let mut parser = Parser::new(lexer, &mut emitter);
 
+    // allow parser to parse
+    parser.program();
     println!("Parsing complete");
+    // allow emitter to emit
+    emitter.write_file();
+
+    // allow me fam
+    println!("Compiling completed.");
 }

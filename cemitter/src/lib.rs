@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write};
 
-struct Emitter {
+pub struct Emitter {
     full_path: String,
     header: String,
     code: String,

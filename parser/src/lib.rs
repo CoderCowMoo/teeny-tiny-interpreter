@@ -1,11 +1,11 @@
+use cemitter::Emitter;
 use lexer::tokens::{Token, TokenType};
 use lexer::Lexer;
 use std::collections::HashSet;
-use cemitter::
 
-pub struct Parser {
+pub struct Parser<'a> {
     lexer: Lexer,
-    emitter: &mut Emitter,
+    emitter: &'a mut Emitter,
     cur_token: Token,
     peek_token: Token,
     // use a hashset (FOR SPPPEEEEDED NEEOOWWWWWW)
@@ -14,10 +14,11 @@ pub struct Parser {
     labels_go_toed: HashSet<String>,
 }
 
-impl Parser {
-    pub fn new(lexer: Lexer) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(lexer: Lexer, emitter: &'a mut Emitter) -> Self {
         let mut newparser = Parser {
             lexer,
+            emitter,
             cur_token: Token {
                 token_type: TokenType::UNKNOWN,
                 value: "".to_string(),
