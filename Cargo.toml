@@ -13,3 +13,10 @@ parser = { version = "0.1.0", path = "parser" }
 
 [workspace]
 members = ["lexer", "parser"]
+
+[profile.release]
+strip = true
+lto = true
+# I don't want to change optimization level
+codegen-units = 1
+panic = "abort"
